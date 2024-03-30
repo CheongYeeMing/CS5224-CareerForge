@@ -12,7 +12,18 @@ import { LockIcon } from './LockIcon.jsx';
 import { setUserSession } from './AuthService';
 import axios from 'axios';
 require('dotenv').config();
+import SecretsManager from '../util/SecretsManager'; // Adjust the import path as needed
 
+let secret;
+(async () => {
+  try {
+    secret = await SecretsManager.getSecret();
+    console.log('Secret:', secret);
+    // Use the secret in your application
+  } catch (error) {
+    console.error('Error fetching secret:', error);
+  }
+})();
 const LoginPage = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
