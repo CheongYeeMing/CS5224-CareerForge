@@ -43,7 +43,7 @@ def get_job_ids(keywords, location, max_number_to_get):
 
 def lambda_handler(event, context):
     try:
-        job_ids = get_job_ids("backend","singapore", 100)
+        job_ids = get_job_ids("software","singapore", 100)
     except:
         logging.error("ERROR: Unexpected error: Could not get job ids")
         sys.exit()
@@ -103,10 +103,10 @@ def lambda_handler(event, context):
                 job["level"]=None
 
             try:
-                job["job description"]=soup.find("div",{"class":"core-section-container__content break-words"}).text.strip()
+                job["job description"]=soup.find("div",{"class":"core-section-container__content break-words"}).text.strip().replace("\n", " ").replace("'", "")
             except:
                 try:
-                    job["job description"]==soup.find("div",{"class":"description__text description__text--rich"}).text.strip()
+                    job["job description"]==soup.find("div",{"class":"description__text description__text--rich"}).text.strip().replace("\n", " ").replace("'", "")
                 except:
                     job["job description"]=None
 
@@ -130,7 +130,7 @@ def lambda_handler(event, context):
             keywords = str(job["keywords"])
             keywords = keywords.replace("'", '"')
             print(keywords)
-            insertstring = "INSERT INTO detail VALUES('{}','{}','{}','{}','{}')".format(job["ID"], job["company"], job["job-title"], job["level"], keywords)
+            insertstring = "INSERT INTO detail VALUES('{}','{}','{}','{}','{}','{}')".format(job["ID"], job["company"], job["job-title"], job["level"], job["job description"], keywords)
             try:
                 cur.execute(insertstring)
                 print(f'{job["ID"]} inserted')
@@ -143,4 +143,3 @@ def lambda_handler(event, context):
         "statusCode":200,
         "inserted": inserted
     } 
-print(lambda_handler(0,0))
