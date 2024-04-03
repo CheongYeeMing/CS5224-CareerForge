@@ -5,11 +5,17 @@ import {
   NavbarContent,
   NavbarItem,
   Link,
-  Button,
   DropdownItem,
   DropdownTrigger,
   Dropdown,
   DropdownMenu,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  useDisclosure,
 } from '@nextui-org/react';
 import {
   ChevronDown,
@@ -28,6 +34,7 @@ interface NavBarProps {
 }
 
 const NavBar: React.FC<NavBarProps> = ({ isAuthenticated, logoutHandler }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const icons = {
     chevron: (
       <ChevronDown
@@ -168,9 +175,9 @@ const NavBar: React.FC<NavBarProps> = ({ isAuthenticated, logoutHandler }) => {
               </Link>
             </NavbarItem>
             <NavbarItem>
-              <Link color="foreground" href="#">
+              <Button onPress={onOpen} variant="ghost">
                 Upload Resume
-              </Link>
+              </Button>
             </NavbarItem>
           </>
         )}
@@ -196,6 +203,31 @@ const NavBar: React.FC<NavBarProps> = ({ isAuthenticated, logoutHandler }) => {
           </NavbarItem>
         )}
       </NavbarContent>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Upload Resume
+              </ModalHeader>
+              <ModalBody>
+                <p>
+                  Replace this with input field - ym can just find some simple
+                  drag and drop react library
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                <Button color="primary" onPress={onClose}>
+                  Upload
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </Navbar>
   );
 };

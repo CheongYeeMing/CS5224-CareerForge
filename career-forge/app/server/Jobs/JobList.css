@@ -1,0 +1,21 @@
+#jobs {
+  width: 100%;
+  max-width: 40rem;
+  margin: 2rem auto;
+  max-height: calc(100vh - 10rem); /* Calculate the remaining space */
+  overflow-y: auto; /* Set the maximum height for scrolling */
+}
+
+#jobs::-webkit-scrollbar {
+  display: none; /* Hide the scrollbar for Chrome, Safari, and Edge */
+}
+
+#jobs > p {
+  text-align: center;
+}
+
+.job-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}

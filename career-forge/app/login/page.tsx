@@ -12,18 +12,7 @@ import { LockIcon } from './LockIcon.jsx';
 import { setUserSession } from './AuthService';
 import axios from 'axios';
 require('dotenv').config();
-import SecretsManager from '../util/SecretsManager'; // Adjust the import path as needed
 
-let secret;
-(async () => {
-  try {
-    secret = await SecretsManager.getSecret();
-    console.log('Secret:', secret);
-    // Use the secret in your application
-  } catch (error) {
-    console.error('Error fetching secret:', error);
-  }
-})();
 const LoginPage = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -89,7 +78,7 @@ const LoginPage = () => {
 
   return (
     <section className="text-white body-font p-4">
-      <NavBar isAuthenticated={false}  logoutHandler={()=>{}}/>
+      <NavBar isAuthenticated={false} logoutHandler={() => {}} />
       <div className="container px-5 pb-12 mx-auto flex flex-wrap items-center">
         <div className="lg:w-2/6 md:w-1/2 bg-transparent rounded-lg p-8 flex flex-col md:mx-auto w-full mt-10 md:mt-0">
           <h2 className="text-white text-lg font-medium title-font mb-8">

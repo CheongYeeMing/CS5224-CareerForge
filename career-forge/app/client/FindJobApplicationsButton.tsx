@@ -3,13 +3,25 @@ import React from 'react';
 import Link from 'next/link';
 import { Button } from '@nextui-org/react';
 
-const FindJobApplicationsButton = () => {
+interface FindJobApplicationsButtonProps {
+  isLoading: boolean | undefined;
+  onClick: () => void;
+}
+
+const FindJobApplicationsButton: React.FC<FindJobApplicationsButtonProps> = ({
+  isLoading,
+  onClick,
+}) => {
   return (
-    <Link href="/login" className="">
-      <Button color="primary" variant="ghost" size="lg">
-        Find Jobs
-      </Button>
-    </Link>
+    <Button
+      color="primary"
+      variant="ghost"
+      size="lg"
+      isDisabled={isLoading}
+      onClick={onClick}
+    >
+      Find Jobs
+    </Button>
   );
 };
 
