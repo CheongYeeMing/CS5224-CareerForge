@@ -17,7 +17,7 @@ const FindJobApplicationsButton: React.FC<FindJobApplicationsButtonProps> = ({
       color="primary"
       variant="ghost"
       size="lg"
-      isDisabled={isLoading}
+      isLoading={isLoading}
       onClick={onClick}
     >
       Find Jobs
