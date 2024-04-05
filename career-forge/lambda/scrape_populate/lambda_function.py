@@ -43,7 +43,7 @@ def get_job_ids(keywords, location, max_number_to_get):
 
 def lambda_handler(event, context):
     try:
-        job_ids = get_job_ids("software","singapore", 100)
+        job_ids = get_job_ids("software","singapore", 1000)
     except:
         logging.error("ERROR: Unexpected error: Could not get job ids")
         sys.exit()
@@ -52,6 +52,7 @@ def lambda_handler(event, context):
           "devops", "defensive", "git", "anaylse", "design", "team player", "computer science", "cloud", "artificial intelligence",
          "ai", "secure", "ci", "cd", "deployment", "api", "rest", "soap", "product", "management", "organizational", "agile", "scrum",
          "api","testing", "mobile", "architecture", "infrastructure", "lead"]
+    c = ['Seniority level', 'Employment type', 'Job function', 'Industries']
     target_url='https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{}'
     user_name='cs5224'
     password='adminpassword'
@@ -97,10 +98,16 @@ def lambda_handler(event, context):
             except:
                 job["job-title"]=None
 
-            try:
-                job["level"]=soup.find("ul",{"class":"description__job-criteria-list"}).find("li").text.replace("Seniority level","").strip()
-            except:
-                job["level"]=None
+            pt=0
+            criterias = soup.find("ul",{"class":"description__job-criteria-list"})
+            if criterias is not None:
+                for crit in criterias.find_all("li"):
+
+                    try:
+                        job[c[pt]]=crit.text.replace(c[pt],"").strip()
+                    except:
+                        job[c[pt]]=None
+                    pt +=1
 
             try:
                 job["job description"]=soup.find("div",{"class":"core-section-container__content break-words"}).text.strip().replace("\n", " ").replace("'", "")
@@ -120,7 +127,7 @@ def lambda_handler(event, context):
                 job["keywords"] = {}
 
             # TODO: find more fields to extract
-            if job["company"] is not None and job["job-title"] is not None and job["level"] is not None and job["job description"] is not None:
+            if job["company"] is not None and job["job-title"] is not None and job["Seniority level"] is not None and job["job description"] is not None:
                 print(job)
                 jobs.append(job)
 
@@ -130,7 +137,7 @@ def lambda_handler(event, context):
             keywords = str(job["keywords"])
             keywords = keywords.replace("'", '"')
             print(keywords)
-            insertstring = "INSERT INTO detail VALUES('{}','{}','{}','{}','{}','{}')".format(job["ID"], job["company"], job["job-title"], job["level"], job["job description"], keywords)
+            insertstring = "INSERT INTO detail VALUES('{}','{}','{}','{}','{}','{}','{}','{}','{}')".format(job["ID"], job["company"], job["job-title"], job["Seniority level"], job["Employment type"],job["Job function"],job["Industries"],job["job description"], keywords)
             try:
                 cur.execute(insertstring)
                 print(f'{job["ID"]} inserted')
@@ -143,3 +150,4 @@ def lambda_handler(event, context):
         "statusCode":200,
         "inserted": inserted
     } 
+print(lambda_handler(0,0))
