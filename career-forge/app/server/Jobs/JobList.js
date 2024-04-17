@@ -7,7 +7,7 @@ const JobList = (props) => {
   let content;
   console.log(props);
   if (!props.jobRecommendations || props.jobRecommendations.length === 0) {
-    content = <p>Nothing</p>;
+    content = <p></p>;
   } else {
     content = (
       <ul className="job-list">

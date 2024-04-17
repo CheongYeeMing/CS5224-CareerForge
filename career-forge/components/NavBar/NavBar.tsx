@@ -1,15 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { toast } from 'react-toastify';
 import {
   Navbar,
   NavbarBrand,
   NavbarContent,
   NavbarItem,
   Link,
-  DropdownItem,
-  DropdownTrigger,
-  Dropdown,
-  DropdownMenu,
   Modal,
+  Textarea,
   ModalContent,
   ModalHeader,
   ModalBody,
@@ -17,6 +16,7 @@ import {
   Button,
   useDisclosure,
 } from '@nextui-org/react';
+import axios from 'axios';
 import {
   ChevronDown,
   Lock,
@@ -35,69 +35,76 @@ interface NavBarProps {
 
 const NavBar: React.FC<NavBarProps> = ({ isAuthenticated, logoutHandler }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const icons = {
-    chevron: (
-      <ChevronDown
-        fill="currentColor"
-        size={16}
-        height={undefined}
-        width={undefined}
-      />
-    ),
-    scale: (
-      <Scale
-        className="text-warning"
-        fill="currentColor"
-        size={30}
-        height={undefined}
-        width={undefined}
-      />
-    ),
-    lock: (
-      <Lock
-        className="text-success"
-        fill="currentColor"
-        size={30}
-        height={undefined}
-        width={undefined}
-      />
-    ),
-    activity: (
-      <Activity
-        className="text-secondary"
-        fill="currentColor"
-        size={30}
-        height={undefined}
-        width={undefined}
-      />
-    ),
-    flash: (
-      <Flash
-        className="text-primary"
-        fill="currentColor"
-        size={30}
-        height={undefined}
-        width={undefined}
-      />
-    ),
-    server: (
-      <Server
-        className="text-success"
-        fill="currentColor"
-        size={30}
-        height={undefined}
-        width={undefined}
-      />
-    ),
-    user: (
-      <TagUser
-        className="text-danger"
-        fill="currentColor"
-        size={30}
-        height={undefined}
-        width={undefined}
-      />
-    ),
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null); // State to store the selected file
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop: (acceptedFiles) => {
+      setSelectedFile(acceptedFiles[0]); // Set the first accepted file
+    },
+  });
+
+  const readFileAsBinary = (file: Blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const binaryData = reader.result as ArrayBuffer;
+        resolve(binaryData);
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const uploadResume = async () => {
+    setIsLoading(true);
+    if (selectedFile) {
+      const apiKey = process.env.NEXT_PUBLIC_X_API_KEY || '';
+      let username = '123';
+      const user = sessionStorage.getItem('user');
+      if (user) {
+        username = JSON.parse(user)['username'];
+        console.log(username);
+      }
+      const binaryData: any = await readFileAsBinary(selectedFile);
+      const requestConfig = {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'x-api-key': apiKey,
+          user_id: username,
+        },
+      };
+      axios
+        .post(
+          `${process.env.NEXT_PUBLIC_USER_LAMBDA_URL}/upload-resume`,
+          binaryData,
+          requestConfig
+        )
+        .then((response) => {
+          setIsLoading(false);
+          onClose();
+          toast.success('Resume uploaded successfully!');
+          setSelectedFile(null); // Reset selected file state
+        })
+        .catch((error) => {
+          console.log(error);
+          setIsLoading(false);
+          onClose();
+          if (
+            error.response.statusCode === 401 ||
+            error.response.statusCode === 403
+          ) {
+            toast.error('Unable to upload resume. Please try again.');
+          } else {
+            toast.error('Something went wrong. Please try again later.');
+          }
+        });
+    } else {
+      setIsLoading(false);
+      toast.error('Please select a file to upload');
+    }
   };
 
   return (
@@ -109,64 +116,6 @@ const NavBar: React.FC<NavBarProps> = ({ isAuthenticated, logoutHandler }) => {
         </Link>
       </NavbarBrand>
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
-        {/* <Dropdown>
-          <NavbarItem>
-            <DropdownTrigger>
-              <Button
-                disableRipple
-                className="p-0 bg-transparent data-[hover=true]:bg-transparent"
-                endContent={icons.chevron}
-                radius="sm"
-                variant="light"
-              >
-                Features
-              </Button>
-            </DropdownTrigger>
-          </NavbarItem>
-          <DropdownMenu
-            aria-label="ACME features"
-            className="w-[340px]"
-            itemClasses={{
-              base: 'gap-4',
-            }}
-          >
-            <DropdownItem
-              key="autoscaling"
-              description="ACME scales apps to meet user demand, automagically, based on load."
-              startContent={icons.scale}
-            >
-              Autoscaling
-            </DropdownItem>
-            <DropdownItem
-              key="usage_metrics"
-              description="Real-time metrics to debug issues. Slow query added? We’ll show you exactly where."
-              startContent={icons.activity}
-            >
-              Usage Metrics
-            </DropdownItem>
-            <DropdownItem
-              key="production_ready"
-              description="ACME runs on ACME, join us and others serving requests at web scale."
-              startContent={icons.flash}
-            >
-              Production Ready
-            </DropdownItem>
-            <DropdownItem
-              key="99_uptime"
-              description="Applications stay on the grid with high availability and high uptime guarantees."
-              startContent={icons.server}
-            >
-              +99% Uptime
-            </DropdownItem>
-            <DropdownItem
-              key="supreme_support"
-              description="Overcome any challenge with a supporting team ready to respond."
-              startContent={icons.user}
-            >
-              +Supreme Support
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown> */}
         {isAuthenticated && (
           <>
             <NavbarItem isActive>
@@ -211,16 +160,30 @@ const NavBar: React.FC<NavBarProps> = ({ isAuthenticated, logoutHandler }) => {
                 Upload Resume
               </ModalHeader>
               <ModalBody>
-                <p>
-                  Replace this with input field - ym can just find some simple
-                  drag and drop react library
-                </p>
+                {selectedFile ? (
+                  <p>Selected file: {selectedFile.name}</p> // Display file name if selected
+                ) : (
+                  <p className="dropzone" {...getRootProps()}>
+                    <input {...getInputProps()} />
+                    <Textarea
+                      isReadOnly
+                      variant="bordered"
+                      placeholder="Drag & drop resume here, or click to select resume"
+                      defaultValue="Drag & drop resume here, or click to select resume"
+                      className="max-w-full"
+                    ></Textarea>
+                  </p>
+                )}
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
                   Close
                 </Button>
-                <Button color="primary" onPress={onClose}>
+                <Button
+                  color="primary"
+                  onPress={uploadResume}
+                  isLoading={isLoading}
+                >
                   Upload
                 </Button>
               </ModalFooter>

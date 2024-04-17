@@ -1,0 +1,24 @@
+/* Style for the dropzone area */
+.dropzone {
+    width: 250px; /* Adjust width as needed */
+    height: 150px; /* Adjust height as needed */
+    border: 2px dashed #ccc;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px auto;
+    color: #aaa;
+    cursor: pointer;
+  }
+  
+  /* Style for the dropzone area when hovering */
+  .dropzone:hover {
+    border-color: #999;
+  }
+  
+  /* Style for the dropzone area when a file is dragged over */
+  .dropzone.active {
+    border-color: #007bff;
+    color: #007bff;
+  }

@@ -37,5 +37,10 @@ def lambda_handler(event, context):
     return {
         "statusCode":200,
         "job_details":items
-    } 
+    }
 print(lambda_handler(1,1))
+
+
+# Upload Resume [user_id, resume] -> S3/resume -> Textract [user_id, textract output] -> S3/resume_textract
+
+# Fetch Job Recommendations -> user_id/resume_textract -> Personalize -> FE -> Job Recommendations
