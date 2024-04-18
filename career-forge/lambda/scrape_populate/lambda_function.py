@@ -8,21 +8,25 @@ from bs4 import BeautifulSoup
 import math
 import json
 
-def get_first_job_id(keywords, location):
-    target_url=f'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=ios&location=singapore'
+def get_first_job_id(location):
+    target_url=f'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?location=singapore'
     res = requests.get(target_url)
     soup=BeautifulSoup(res.text,'html.parser')
     list=soup.find_all("li")[0]
     first_job_id = list.find("div",{"class":"base-card"}).get('data-entity-urn').split(":")[3]
     return first_job_id
 
-def get_job_ids(keywords, location, max_number_to_get):
-    keywords = keywords.replace(" ", "%20")
+def get_job_ids(location, max_number_to_get):
     location = location.replace(" ", "%20")
-    currentJobId = get_first_job_id(keywords, location)
+    try:
+        currentJobId = get_first_job_id(location)
+    except:
+        print("could not get initial ID")
+        sys.exit()
     number_of_loops=math.ceil(max_number_to_get/25)
+    print("initial job id: " +currentJobId)
 
-    target_url=f'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={keywords}&location={location}&currentJobId={currentJobId}&start=' + '{}'
+    target_url=f'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?location={location}&currentJobId={currentJobId}&start=' + '{}'
 
     job_ids = set()
 
@@ -43,9 +47,11 @@ def get_job_ids(keywords, location, max_number_to_get):
 
 def lambda_handler(event, context):
     try:
-        job_ids = get_job_ids("software","singapore", 1000)
-    except:
+        job_ids = get_job_ids("singapore", 1000)
+    except Exception as e:
         logging.error("ERROR: Unexpected error: Could not get job ids")
+        logging.error(e)
+        print("Error: "+e)
         sys.exit()
 
     keywords=["backend", "frontend", "javascript", "python", "java", "ui", "ux", "sql", "react", "algorithm", "problem solving", 
@@ -137,7 +143,7 @@ def lambda_handler(event, context):
             keywords = str(job["keywords"])
             keywords = keywords.replace("'", '"')
             print(keywords)
-            insertstring = "INSERT INTO detail VALUES('{}','{}','{}','{}','{}','{}','{}','{}','{}')".format(job["ID"], job["company"], job["job-title"], job["Seniority level"], job["Employment type"],job["Job function"],job["Industries"],job["job description"], keywords)
+            insertstring = "INSERT INTO detail (jobid,company, title, level,employment_type,function, industry, description, keyword) VALUES('{}','{}','{}','{}','{}','{}','{}','{}','{}')".format(job["ID"], job["company"], job["job-title"], job["Seniority level"], job["Employment type"],job["Job function"],job["Industries"],job["job description"], keywords)
             try:
                 cur.execute(insertstring)
                 print(f'{job["ID"]} inserted')

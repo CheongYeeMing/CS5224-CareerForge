@@ -1,4 +1,5 @@
 import sys
+import json
 import boto3
 import urllib
 import psycopg2
@@ -19,7 +20,7 @@ def get_new_recommendations_df_users(user_id, context):
             "resume" : context
         }
     )
-    # Build a new dataframe of recommendations
+    # # Build a new dataframe of recommendations
     item_list = get_recommendations_response['itemList']
     print(item_list)
     recommendation_list = []
@@ -36,7 +37,13 @@ def lambda_handler(event, context):
     rds_host='careerforge-db-1.crywows4qz3l.us-east-1.rds.amazonaws.com'
     rds_port='5432'
     db_name='careerforge_job'
-    user_id = event["user_id"]
+    print(event)
+    # return{
+    #     "Event": event
+    # }
+    user_id = event["headers"]["user_id"]
+    # user_id = body_obj["user_id"]
+
     filepath = 'textract/' + str(user_id) + '.pdf.txt'
     
     try:
@@ -63,8 +70,14 @@ def lambda_handler(event, context):
             print(row)
             jobs.append(row)
     conn.commit()
+    jobs = json.dumps(jobs)
     return {
         'statusCode': 200,
-        'user_id': user_id,
+        'headers': {
+            "Access-Control-Allow-Origin": '*',
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", 
+            "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Amz-Date,X-Amz-Security-Token"
+        },
         'body': jobs
     }
